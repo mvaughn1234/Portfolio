@@ -304,7 +304,7 @@ const EducationResults: React.FC<EducationResultsProps> = ({width, height, xSwit
 
 	useEffect(() => {
 		// Define the file path (adjust if the CSV file is hosted elsewhere)
-		const csvFilePath = 'src/data/predicted_student_performance.csv';
+		const csvFilePath = './assets/data/predicted_student_performance.csv';
 
 		// Fetch and parse the CSV
 		Papa.parse(csvFilePath, {
