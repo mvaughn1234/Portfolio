@@ -23,7 +23,6 @@ import EducationResultsWrapper from "./charts/EducationResults.tsx";
 const StyledBox = styled('div')(({theme}) => ({
 	alignSelf: 'center',
 	width: '100%',
-	height: useMediaQuery(theme.breakpoints.up('sm')) ? 400 : 600,
 	marginTop: useMediaQuery(theme.breakpoints.up('sm')) ? theme.spacing(8) : theme.spacing(10),
 	borderRadius: theme.shape.borderRadius,
 	outline: '6px solid',
@@ -31,16 +30,9 @@ const StyledBox = styled('div')(({theme}) => ({
 	border: '1px solid',
 	borderColor: theme.palette.grey[200],
 	boxShadow: `0 0 12px 8px ${theme.palette.brand ? alpha(theme.palette.brand[200], 0.1) : 'hsla(220, 25%, 80%, 0.2)'}`,
-	image: `url('https://mui.com/static/screenshots/material-ui/getting-started/templates/dashboard.jpg)`,
 	backgroundSize: 'cover',
-	// [theme.breakpoints.up('xs')]: {
-	// 	marginTop: theme.spacing(10),
-	// 	height: 700,
-	// },
 	...theme.applyStyles('dark', {
 		boxShadow: `0 0 24px 12px ${theme.palette.brand ? alpha(theme.palette.brand[600], 0.1) : 'hsla(210, 100%, 25%, 0.2)'}`,
-		backgroundImage: `url('https://mui.com/static/screenshots/material-ui/getting-started/templates/dashboard-dark.jpg)`,
-		// outlineColor: 'hsla(220, 20%, 42%, 0.1)',
 		outlineColor: theme.palette.brand ? alpha(theme.palette.brand[900], 0.1) : 'hsla(220, 20%, 42%, 0.1)',
 		borderColor: theme.palette.grey[700],
 	}),
@@ -135,16 +127,15 @@ const ChartPlayground: React.FC = () => {
 	)
 
 	return (
-		<Container>
+		<Container sx={{pb: 10}}>
 			<StyledBox id="image">
 				{selectedChart === ''
 					?
-					<Box sx={{display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center'}}>
+					<Box sx={(theme) => ({display: 'flex', width: '100%', height: useMediaQuery(theme.breakpoints.up('sm')) ? 200 : 300, alignItems: 'center', justifyContent: 'center'})}>
 						{graphSelect}
 					</Box>
 					:
 					<Fade in={selectedChart !== ''} timeout={500}>
-						{/* Everything that should be animated in goes here */}
 						<Box sx={{flexGrow: 1, height: '100%'}}>
 							<Grid container spacing={2} alignItems="center" sx={{height: '100%'}}>
 								<Grid size={{xs: 12, sm: 8, md: 8}} sx={{height: {sm: '100%'}, px: 2}}>
@@ -164,7 +155,7 @@ const ChartPlayground: React.FC = () => {
 						</Box>
 					</Fade>
 
-				} {/* Render the Select when there is no chart */}
+				}
 			</StyledBox>
 		</Container>
 	);

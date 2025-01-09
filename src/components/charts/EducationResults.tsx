@@ -83,7 +83,7 @@ const EducationResults: React.FC<EducationResultsProps> = ({width, height, xSwit
 		const seScale = d3
 			.scaleLinear()
 			.domain(d3.extent(dataIndexed.socioeconomic_score) as [number, number])
-			.range([1, 3])
+			.range([0, 2])
 
 		const attendanceScale = d3
 			.scaleLinear<string>()
