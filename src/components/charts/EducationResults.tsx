@@ -63,7 +63,6 @@ const EducationResults: React.FC<EducationResultsProps> = ({width, height, xSwit
 		if (!svgRef.current || !dataIndexed || !(dataIndexed.study_hours.length > 0)) return;
 
 		const margin = {top: 30, right: 50, bottom: 30, left: 50}
-		console.log("data indexed: ", dataIndexed)
 		const svg = d3.select<SVGSVGElement, StudentData>(svgRef.current)
 			.attr('width', width)
 			.attr('height', height)
@@ -135,7 +134,6 @@ const EducationResults: React.FC<EducationResultsProps> = ({width, height, xSwit
 			.join(
 				enter => {
 					const e = enter.append('circle')
-						// .call(enter => enter.append("title").text(d => `Grades: ${d.grades}\nHours Studied: ${d.study_hours}\nHours Slept: ${d.sleep_hours}\nAttendance: ${d.attendance}\nSocioeconomic Score: ${d.socioeconomic_score}`))
 						.attr("cx", d => xScale(d[xSwitch]))
 						.attr("cy", d => yScale(d.grades))
 						.attr("fill", d => attendanceScale(d.attendance))
@@ -184,7 +182,6 @@ const EducationResults: React.FC<EducationResultsProps> = ({width, height, xSwit
 						.attr("fill", d => attendanceScale(d.attendance))
 						.attr("r", d => seScale(d.socioeconomic_score))
 
-					// .select("title").text(d => `Grades: ${d.grades}\nHours Studied: ${d.study_hours}\nHours Slept: ${d.sleep_hours}\nAttendance: ${d.attendance}\nSocioeconomic Score: ${d.socioeconomic_score}`)
 					return update
 				},
 				exit => {
@@ -264,7 +261,6 @@ const EducationResults: React.FC<EducationResultsProps> = ({width, height, xSwit
 				.attr("dy", "0.35em") // Adjust vertical alignment
 				.attr("text-anchor", "middle") // Align text to the end
 				.attr("transform", `rotate(90, ${legendX + 20}, ${legendY + legendHeight / 2})`) // Rotate 90 degrees
-				// .attr("transform", "rotate(0)")
 				.attr("font-size", "12px")
 				.attr("fill", "currentColor")
 				.text("Attendance");
@@ -303,7 +299,6 @@ const EducationResults: React.FC<EducationResultsProps> = ({width, height, xSwit
 	}, [dataIndexed, width, height, xSwitch]);
 
 	useEffect(() => {
-		// Define the file path (adjust if the CSV file is hosted elsewhere)
 		const csvFilePath = './assets/data/predicted_student_performance.csv';
 
 		// Fetch and parse the CSV
@@ -313,7 +308,6 @@ const EducationResults: React.FC<EducationResultsProps> = ({width, height, xSwit
 			skipEmptyLines: true,
 			complete: (result) => {
 				const rawData = result.data as RawStudentData[]; // Correctly access the data property
-				console.log("raw data: ", rawData)
 				const processedData = rawData.map((row, i) => ({
 					id: i,
 					study_hours: parseFloat(row["Study Hours"]),

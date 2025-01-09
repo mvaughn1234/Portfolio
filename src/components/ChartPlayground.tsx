@@ -85,8 +85,8 @@ const InteractionsWrapper: React.FC<InteractionsWrapperProps> = ({selectedGraph,
 					value={xSwitch}
 					onChange={handleEducationSwitch}
 				>
-					<FormControlLabel value="study_hours" control={<Radio />} label="Study Hours"/>
-					<FormControlLabel value="sleep_hours" control={<Radio />} label="Sleep Hours"/>
+					<FormControlLabel value="study_hours" control={<Radio/>} label="Study Hours"/>
+					<FormControlLabel value="sleep_hours" control={<Radio/>} label="Sleep Hours"/>
 				</RadioGroup>
 			</FormControl>
 		)
@@ -131,8 +131,18 @@ const ChartPlayground: React.FC = () => {
 			<StyledBox id="image">
 				{selectedChart === ''
 					?
-					<Box sx={(theme) => ({display: 'flex', width: '100%', height: useMediaQuery(theme.breakpoints.up('sm')) ? 200 : 300, alignItems: 'center', justifyContent: 'center'})}>
-						{graphSelect}
+					<Box sx={(theme) => ({
+						display: 'flex',
+						width: '100%',
+						// eslint-disable-next-line react-hooks/rules-of-hooks
+						height: useMediaQuery(theme.breakpoints.up('sm')) ? 200 : 300,
+						alignItems: 'center',
+						justifyContent: 'center'
+					})}>
+						<Stack sx={{width: '100%', alignItems: 'center'}}>
+							<Typography variant="h4">Pick A Chart...</Typography>
+							{graphSelect}
+						</Stack>
 					</Box>
 					:
 					<Fade in={selectedChart !== ''} timeout={500}>
@@ -141,10 +151,11 @@ const ChartPlayground: React.FC = () => {
 								<Grid size={{xs: 12, sm: 8, md: 8}} sx={{height: {sm: '100%'}, px: 2}}>
 									<GraphWrapper selectedGraph={selectedChart} interactionProps={interactionProps}/>
 								</Grid>
-								<Grid size={{xs: 12, sm: 4, md: 4}} sx={{display: 'flex', height: {sm: '100%'}, alignItems: 'center', justifyContent: 'center'}}>
+								<Grid size={{xs: 12, sm: 4, md: 4}}
+											sx={{display: 'flex', height: {sm: '100%'}, alignItems: 'center', justifyContent: 'center'}}>
 									<Stack spacing={2} sx={{alignItems: 'flex-start', justifyContent: 'center', p: 2}}>
 										{graphSelect}
-										<Divider />
+										<Divider/>
 										<InteractionsWrapper
 											selectedGraph={selectedChart}
 											handleSetInteractionProps={handleSetInteractionProps}
