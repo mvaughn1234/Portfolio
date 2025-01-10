@@ -7,17 +7,21 @@ import {
 	InputLabel,
 	Radio,
 	RadioGroup,
-	Select
+	Select,
+	Slider
 } from "@mui/material";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Grid from '@mui/material/Grid2';
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
-import {alpha, styled} from "@mui/material/styles";
+import {alpha, styled, useTheme} from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import {DatePicker} from '@mui/x-date-pickers/DatePicker';
+import dayjs, {Dayjs} from "dayjs";
 import React, {useState} from 'react'
+import AirQualityAnalysisWrapper from "./charts/AirQualityAnalysis.tsx";
 import EducationResultsWrapper from "./charts/EducationResults.tsx";
 
 const StyledBox = styled('div')(({theme}) => ({
@@ -29,8 +33,8 @@ const StyledBox = styled('div')(({theme}) => ({
 	outlineColor: theme.palette.brand ? alpha(theme.palette.brand[50], 0.2) : 'hsla(220, 25%, 80%, 0.2)',
 	border: '1px solid',
 	borderColor: theme.palette.grey[200],
+	backgroundColor: theme.palette.background.paper,
 	boxShadow: `0 0 12px 8px ${theme.palette.brand ? alpha(theme.palette.brand[200], 0.1) : 'hsla(220, 25%, 80%, 0.2)'}`,
-	backgroundSize: 'cover',
 	...theme.applyStyles('dark', {
 		boxShadow: `0 0 24px 12px ${theme.palette.brand ? alpha(theme.palette.brand[600], 0.1) : 'hsla(210, 100%, 25%, 0.2)'}`,
 		outlineColor: theme.palette.brand ? alpha(theme.palette.brand[900], 0.1) : 'hsla(220, 20%, 42%, 0.1)',
@@ -52,7 +56,7 @@ interface InteractionsWrapperProps {
 	handleSetInteractionProps: (interactionsProps: InteractionProp[]) => void;
 }
 
-const charts = ["Student Performance Metrics"]
+const charts = ["Student Performance Metrics", "Air Quality Analysis"]
 
 const GraphWrapper: React.FC<GraphWrapperProps> = ({selectedGraph, interactionProps}) => {
 	if (selectedGraph === charts[0]) {
@@ -63,16 +67,56 @@ const GraphWrapper: React.FC<GraphWrapperProps> = ({selectedGraph, interactionPr
 																 xSwitch={(interactionProps !== null && interactionProps.length > 0 && (interactionProps[0]["xSwitch"] as "study_hours" || "sleep_hours")) || "study_hours"}/>
 			</Stack>
 		)
+	} else if (selectedGraph === charts[1]) {
+		return (
+			<Stack direction="column" sx={{justifyContent: 'center', width: '100%', pt: 1, alignItems: 'center'}}>
+				<Typography align='center'>Air Quality Analysis</Typography>
+				<AirQualityAnalysisWrapper height={320}
+																	 date={(interactionProps !== null && interactionProps.length > 0 && interactionProps[0] && interactionProps[0]["date"]) ? interactionProps[0]["date"] : "2015"}
+																	 metric={(interactionProps !== null && interactionProps.length > 0 && interactionProps[1] && interactionProps[1]["metric"]) ? interactionProps[1]["metric"] : "Nitrogen"}/>
+			</Stack>
+		)
 	}
 	return (<></>)
 }
 
 const InteractionsWrapper: React.FC<InteractionsWrapperProps> = ({selectedGraph, handleSetInteractionProps}) => {
+	const minDate = dayjs('2005-01-01');
+	const maxDate = dayjs('2022-11-30');
+	const totalDays = maxDate.diff(minDate, 'day');
+	const theme = useTheme();
 	const [xSwitch, setXSwitch] = useState<"sleep_hours" | "study_hours">("study_hours");
+	const [aqDate, setAQDate] = useState<Dayjs>(dayjs('2015'));
+	const [aqDateSlider, setAQDateSlider] = useState<number>(aqDate.diff(minDate, 'day'));
+	const [aqSelector, setAQSelector] = useState<string>("Nitrogen dioxide (NO2)");
+	const aqMetrics = {"Nitrogen dioxide (NO2)": "Nitrogen", "Fine particles (PM 2.5)": "Fine", "Boiler Emissions- Total SO2 Emissions": "Boiler"}
 
 	const handleEducationSwitch = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setXSwitch(event.target.value as "study_hours" || "sleep_hours");
 		handleSetInteractionProps([{"xSwitch": event.target.value}])
+	}
+
+	const handleAQDateSlider = (_event: Event, newValue: number | number[]) => {
+		if (typeof newValue === 'number') {
+			setAQDateSlider(newValue);
+			const newDate = minDate.add(newValue, 'day');
+			setAQDate(newDate);
+			handleSetInteractionProps([{"date": newDate.format('YYYY-MM-DD')}, {"metric": aqMetrics[aqSelector]}])
+		}
+	};
+
+	const handleAQDate = (newValue: Dayjs | null) => {
+		if (newValue) {
+			setAQDate(newValue);
+			const daysFromStart = newValue.diff(minDate, 'day');
+			setAQDateSlider(daysFromStart);
+			handleSetInteractionProps([{"date": newValue.format('YYYY-MM-DD')}, {"metric": aqMetrics[aqSelector]}])
+		}
+	};
+
+	const handleAQSelector = (event) => {
+		setAQSelector(event.target.value)
+		handleSetInteractionProps([{"date": aqDate.format('YYYY-MM-DD')}, {"metric": aqMetrics[event.target.value]}])
 	}
 
 	if (selectedGraph === charts[0]) {
@@ -92,7 +136,47 @@ const InteractionsWrapper: React.FC<InteractionsWrapperProps> = ({selectedGraph,
 		)
 	} else if (selectedGraph === charts[1]) {
 		return (
-			<></>
+			<Stack direction="column" sx={{justifyContent: 'flex-start', alignItems: 'flex-start'}}>
+				<FormControl sx={{mb: 1, width: '100%', maxWidth: 250}}>
+					<InputLabel>Air Quality Metric</InputLabel>
+					<Select
+						label="Select Chart"
+						value={aqSelector}
+						onChange={handleAQSelector}
+						variant="outlined"
+					>
+						{/*<MenuItem value={''}>None</MenuItem>*/}
+						{Object.keys(aqMetrics).map((metric) => (
+							<MenuItem key={metric} value={metric}>{metric}</MenuItem>
+						))}
+					</Select>
+				</FormControl>
+				<Stack direction="row" spacing={2} sx={{width: '100%', alignItems: 'center'}}>
+					<Slider
+						// size="small"
+						min={0}
+						max={totalDays}
+						value={aqDateSlider}
+						onChange={handleAQDateSlider}
+						aria-label="Date slider"
+						valueLabelDisplay="auto"
+						valueLabelFormat={(value) => minDate.add(value, 'day').format('YYYY-MM-DD')}
+					/>
+					<DatePicker
+						label="Date"
+						value={aqDate}
+						minDate={minDate}
+						maxDate={maxDate}
+						onChange={handleAQDate}
+						slotProps={{
+							textField: {
+								// sx: {minWidth: useMediaQuery(theme.breakpoints.up('lg')) ? 130 : 100}
+							}
+						}}
+
+					/>
+				</Stack>
+			</Stack>
 		)
 	}
 	return (<></>)
@@ -128,13 +212,12 @@ const ChartPlayground: React.FC = () => {
 
 	return (
 		<Container sx={{pb: 10}}>
-			<StyledBox id="image">
+			<StyledBox id="chart playground">
 				{selectedChart === ''
 					?
 					<Box sx={(theme) => ({
 						display: 'flex',
 						width: '100%',
-						// eslint-disable-next-line react-hooks/rules-of-hooks
 						height: useMediaQuery(theme.breakpoints.up('sm')) ? 200 : 300,
 						alignItems: 'center',
 						justifyContent: 'center'
