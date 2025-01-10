@@ -7,7 +7,7 @@ import {
 	InputLabel,
 	Radio,
 	RadioGroup,
-	Select,
+	Select, SelectChangeEvent,
 	Slider
 } from "@mui/material";
 import Box from "@mui/material/Box";
@@ -15,7 +15,7 @@ import Container from "@mui/material/Container";
 import Grid from '@mui/material/Grid2';
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
-import {alpha, styled, useTheme} from "@mui/material/styles";
+import {alpha, styled} from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {DatePicker} from '@mui/x-date-pickers/DatePicker';
@@ -64,7 +64,7 @@ const GraphWrapper: React.FC<GraphWrapperProps> = ({selectedGraph, interactionPr
 			<Stack direction="column" sx={{justifyContent: 'center', width: '100%', pt: 1, alignItems: 'center'}}>
 				<Typography align='center'>Impact of Study and Sleep Habits on Academic Performance</Typography>
 				<EducationResultsWrapper height={320}
-																 xSwitch={(interactionProps !== null && interactionProps.length > 0 && (interactionProps[0]["xSwitch"] as "study_hours" || "sleep_hours")) || "study_hours"}/>
+																 xSwitch={(interactionProps !== null && interactionProps.length > 0 && (interactionProps[0] && interactionProps[0]["xSwitch"] as ("study_hours" | "sleep_hours"))) || "study_hours"}/>
 			</Stack>
 		)
 	} else if (selectedGraph === charts[1]) {
@@ -84,12 +84,15 @@ const InteractionsWrapper: React.FC<InteractionsWrapperProps> = ({selectedGraph,
 	const minDate = dayjs('2005-01-01');
 	const maxDate = dayjs('2022-11-30');
 	const totalDays = maxDate.diff(minDate, 'day');
-	const theme = useTheme();
 	const [xSwitch, setXSwitch] = useState<"sleep_hours" | "study_hours">("study_hours");
 	const [aqDate, setAQDate] = useState<Dayjs>(dayjs('2015'));
 	const [aqDateSlider, setAQDateSlider] = useState<number>(aqDate.diff(minDate, 'day'));
 	const [aqSelector, setAQSelector] = useState<string>("Nitrogen dioxide (NO2)");
-	const aqMetrics = {"Nitrogen dioxide (NO2)": "Nitrogen", "Fine particles (PM 2.5)": "Fine", "Boiler Emissions- Total SO2 Emissions": "Boiler"}
+	const aqMetrics: Record<string, string> = {
+		"Nitrogen dioxide (NO2)": "Nitrogen",
+		"Fine particles (PM 2.5)": "Fine",
+		"Boiler Emissions- Total SO2 Emissions": "Boiler",
+	};
 
 	const handleEducationSwitch = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setXSwitch(event.target.value as "study_hours" || "sleep_hours");
@@ -114,10 +117,14 @@ const InteractionsWrapper: React.FC<InteractionsWrapperProps> = ({selectedGraph,
 		}
 	};
 
-	const handleAQSelector = (event) => {
-		setAQSelector(event.target.value)
-		handleSetInteractionProps([{"date": aqDate.format('YYYY-MM-DD')}, {"metric": aqMetrics[event.target.value]}])
-	}
+	const handleAQSelector = (event: SelectChangeEvent) => {
+		const newValue = event.target.value as string;
+		setAQSelector(newValue);
+		handleSetInteractionProps([
+			{ date: aqDate.format("YYYY-MM-DD") },
+			{ metric: aqMetrics[newValue] }
+		]);
+	};
 
 	if (selectedGraph === charts[0]) {
 		return (
@@ -145,7 +152,6 @@ const InteractionsWrapper: React.FC<InteractionsWrapperProps> = ({selectedGraph,
 						onChange={handleAQSelector}
 						variant="outlined"
 					>
-						{/*<MenuItem value={''}>None</MenuItem>*/}
 						{Object.keys(aqMetrics).map((metric) => (
 							<MenuItem key={metric} value={metric}>{metric}</MenuItem>
 						))}
@@ -170,7 +176,7 @@ const InteractionsWrapper: React.FC<InteractionsWrapperProps> = ({selectedGraph,
 						onChange={handleAQDate}
 						slotProps={{
 							textField: {
-								// sx: {minWidth: useMediaQuery(theme.breakpoints.up('lg')) ? 130 : 100}
+								sx: {minWidth: {xs: 100, lg: 135}}
 							}
 						}}
 
@@ -215,13 +221,13 @@ const ChartPlayground: React.FC = () => {
 			<StyledBox id="chart playground">
 				{selectedChart === ''
 					?
-					<Box sx={(theme) => ({
+					<Box sx={{
 						display: 'flex',
 						width: '100%',
-						height: useMediaQuery(theme.breakpoints.up('sm')) ? 200 : 300,
+						height: {xs: 200, sm: 300},
 						alignItems: 'center',
 						justifyContent: 'center'
-					})}>
+					}}>
 						<Stack sx={{width: '100%', alignItems: 'center'}}>
 							<Typography variant="h4">Pick A Chart...</Typography>
 							{graphSelect}

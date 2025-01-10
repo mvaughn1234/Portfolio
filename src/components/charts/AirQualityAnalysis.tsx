@@ -1,7 +1,8 @@
 import Box from "@mui/material/Box";
 import useResizeObserver from "@react-hook/resize-observer";
+import * as d3 from "d3";
+import * as GeoJSON from "geojson";
 import React, {useEffect, useRef, useState} from "react";
-import * as d3 from 'd3';
 
 interface AirQualityAnalysisWrapperProps {
 	height: number;
@@ -71,6 +72,15 @@ interface SeparatedAirQualityDataIndexedProps {
 	boiler: AirQualityDataIndexedProps;
 }
 
+interface FeatureProperties {
+	BOROUGH: string;
+	OBJECTID: number;
+	SHAPE_Area: number;
+	SHAPE_Leng: number;
+	UHFCODE: number;
+	UHF_NEIGH: string;
+}
+
 const parseTimePeriod = (timePeriod: string): [Date, Date] => {
 	// Handle patterns
 	const yearMatch = /^\d{4}$/.exec(timePeriod);
@@ -91,7 +101,7 @@ const parseTimePeriod = (timePeriod: string): [Date, Date] => {
 		const season = seasonYearMatch[1];
 		const startYear = seasonYearMatch[2];
 		const endYear = seasonYearMatch[3] || startYear;
-		const seasonDates = {
+		const seasonDates: { Winter: [Date, Date]; Summer: [Date, Date]; Fall: [Date, Date]; Spring: [Date, Date] } = {
 			Summer: [new Date(`06/01/${startYear}`), new Date(`08/31/${startYear}`)],
 			Winter: [new Date(`12/01/${startYear}`), new Date(`02/28/${endYear}`)],
 			Spring: [new Date(`03/01/${startYear}`), new Date(`05/31/${startYear}`)],
@@ -108,6 +118,7 @@ const dateInRange = (date: string, startDate: Date, endDate: Date) => {
 	const dateDate = new Date(date);
 	return (dateDate > startDate) && (dateDate < endDate);
 }
+
 
 const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, containerRef, date, metric}) => {
 	const svgRef = useRef<SVGSVGElement | null>(null)
@@ -175,33 +186,32 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 
 	useEffect(() => {
 		if (!svgRef.current || !data || !dataIndexed || dataIndexed.unique_id.length === 0 || !containerRef
-		|| nitrogenDataIndexed.unique_id.length === 0 || boilerDataIndexed.unique_id.length === 0 ||
-			fineDataIndexed.unique_id.length === 0 ) return;
+			|| nitrogenDataIndexed.unique_id.length === 0 || boilerDataIndexed.unique_id.length === 0 ||
+			fineDataIndexed.unique_id.length === 0) return;
 		const geoUrl = "./assets/data/UHF_42_DOHMH_2009.geojson"; // Update the path to your file
-		d3.json(geoUrl).then((geoData) => {
+		const svg = d3.select<SVGSVGElement, AirQualityDataProps>(svgRef.current)
+			.attr("height", height)
+			.attr("width", width)
+			.attr("viewBox", [0, 0, width, height])
+			.attr("style", "max-width: 100%; height: auto;")
 
-			console.log("metric: ", metric)
-			const margin = {top: 30, right: 50, bottom: 30, left: 50}
-			const svg = d3.select<SVGSVGElement, AirQualityDataProps>(svgRef.current)
-				.attr("height", height)
-				.attr("width", width)
-				.attr("viewBox", [0, 0, width, height])
-				.attr("style", "max-width: 100%; height: auto;")
+		d3.json<GeoJSON.FeatureCollection<GeoJSON.Geometry, FeatureProperties>>(geoUrl).then((geoData) => {
+			if (!geoData) return;
 
 			const projection = d3.geoMercator().fitSize([width, height], geoData); // Adjust to your desired projection
 			const path = d3.geoPath().projection(projection);
 			const metricDateAQMap = data.filter(datum => datum.name.startsWith(metric) && dateInRange(date, datum.start_date, datum.end_date))
 
-			console.log("date extents: ", d3.min(dataIndexed.start_date), d3.max(dataIndexed.end_date))
-
 			let selectedDataIndex = nitrogenDataIndexed;
+			let exponent = 1;
 			if (metric === "Fine") {
 				selectedDataIndex = fineDataIndexed;
 			} else if (metric === "Boiler") {
 				selectedDataIndex = boilerDataIndexed;
+				exponent=0.25
 			}
 			// Define a color scale for air quality values
-			const colorScale = d3.scalePow(d3.extent(selectedDataIndex.data_value) as [number, number], ["green", "red"]).exponent(1)
+			const colorScale = d3.scalePow(d3.extent(selectedDataIndex.data_value) as [number, number], ["#23E538", "#E62261"]).exponent(exponent)
 
 			const defs = svg.append("defs");
 			const filter = defs.append("filter")
@@ -219,27 +229,27 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 				.attr("flood-opacity", 0.75);
 
 			// Bind GeoJSON features to paths
-			svg.selectAll("path")
+			svg.selectAll<SVGPathElement, GeoJSON.Feature<GeoJSON.Geometry, FeatureProperties>>("path")
 				.data(geoData.features)
 				.join("path")
 				.attr("d", path)
 				.attr("fill", (d) => {
-					const geoId = Math.trunc(d.properties["UHFCODE"]); // Adjust to your GeoJSON field
+					const geoId = Math.trunc(d.properties.UHFCODE || 0); // Adjust to your GeoJSON field
 					const value = metricDateAQMap.find(datum => datum.geo_join_id === geoId)?.data_value
 					return value !== undefined ? colorScale(value) : "#ccc"; // Default for missing data
 				})
 				.attr("stroke", "#000")
 				.attr("stroke-width", .5)
 				.on("mouseover", (_event, d) => {
-						const thisId = d.properties.UHFCODE;
+					const thisId = d.properties?.["UHFCODE"] || 0;
 
-						svg.selectAll("path")
-							.attr("filter", p => {
-								return p.properties.UHFCODE === thisId
+					svg.selectAll<SVGPathElement, GeoJSON.Feature<GeoJSON.Geometry, FeatureProperties>>("path")
+						.attr("filter", (p) => {
+							return p.properties.UHFCODE === thisId
 								? "url(#shadow)"
-									: null
- 							})
-							.attr("stroke-width", p => p.properties.UHFCODE === thisId ? 1.5 : 0.5)
+								: null
+						})
+						.attr("stroke-width", p => p.properties.UHFCODE === thisId ? 1.5 : 0.5)
 
 				})
 
@@ -248,19 +258,6 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 						.attr("filter", null)
 						.attr("stroke-width", .5); // Reset stroke width
 				})
-
-			// const timeScale = d3.scaleLinear()
-			// 	.domain([d3.min(dataIndexed.start_date) as Date, d3.max(dataIndexed.end_date) as Date])
-			// 	.range([margin.left, width - margin.right])
-			//
-			// const nitrogenColorScale = d3.scaleLinear()
-			// 	.domain(d3.extent(nitrogenDataIndexed.data_value))
-			// 	.range(["red", "green"])
-			//
-			//
-			// if (svg.select(".scatter").empty()) {
-			// 	svg.append("g").attr("class", "scatter")
-			// }
 		})
 
 	}, [dataIndexed, width, height, data, date, metric])
@@ -268,7 +265,6 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 	useEffect(() => {
 		// const url = "https://data.cityofnewyork.us/api/views/c3uy-2p5r/rows.csv?accessType=DOWNLOAD";
 		const url = "./assets/data/Air_Quality.csv"
-		console.log("Start")
 		d3.csv(url, ((d: AirQualityRawDataProps) => {
 			return {
 				unique_id: +d["Unique ID"],
@@ -414,7 +410,6 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 			setBoilerDataIndexed(dataIndexed.boiler)
 			setFineDataIndexed(dataIndexed.fine)
 		}));
-		console.log("End")
 	}, []);
 
 	return (
