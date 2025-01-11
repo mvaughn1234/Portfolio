@@ -15,8 +15,6 @@ const AppAppBar: React.FC = () => {
 			sx={{
 				boxShadow: 0,
 				bgcolor: 'transparent',
-				backgroundImage: 'none',
-				// mt: 'calc(var(--template-frame-height, 0px) + 28px)',
 			}}
 		>
 			<Container maxWidth="lg">
@@ -25,7 +23,9 @@ const AppAppBar: React.FC = () => {
 						<Link href="#" underline="none" color="inherit">
 							<Typography variant="h2" sx={{fontFamily: 'Major Mono Display'}}>MV</Typography>
 						</Link>
-						<ColorModeIconDropdown />
+						<Box sx={{pr: 1}}>
+							<ColorModeIconDropdown/>
+						</Box>
 					</Box>
 				</Toolbar>
 			</Container>
