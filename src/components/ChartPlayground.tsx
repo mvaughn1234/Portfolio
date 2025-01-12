@@ -217,7 +217,7 @@ const ChartPlayground: React.FC = () => {
 	)
 
 	return (
-		<Container sx={{pb: 10}}>
+		<Container sx={{pb: {xs: 5, sm: 7, lg: 10}}}>
 			<StyledBox id="chart playground">
 				{selectedChart === ''
 					?

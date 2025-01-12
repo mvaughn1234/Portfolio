@@ -27,7 +27,7 @@ const Hero: React.FC = () => {
 					flexDirection: 'column',
 					alignItems: 'center',
 					pt: {xs: 6, sm: 12},
-					pb: {xs: 8, sm: 12},
+					pb: {xs: 6, sm: 12},
 				}}
 			>
 				<Stack

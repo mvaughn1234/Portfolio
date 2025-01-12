@@ -31,12 +31,12 @@ const StyledBox = styled('div')(({theme}) => ({
 const Project1: React.FC = () => {
 	return (
 		// <Box sx={(theme) => ({p: 10, width: '100%', backgroundColor: theme.palette.background.paper})}>
-		<Box sx={{p: 10, width: '100%'}}>
+		<Box sx={{py: 10, px: {xs: 1, sm: 5, lg: 10, xl: 20}, width: '100%'}}>
 			<Divider />
 			<Stack spacing={4} sx={{
 				alignItems: 'flex-start',
 				justifyContent: 'flex-start',
-				p: 4
+				p: {xs: 2, sm: 4}
 			}}>
 				<Stack spacing={1}>
 					<Typography variant="h2" sx={(theme) => ({color: theme.palette.grey[700], ...theme.applyStyles('dark', {
@@ -49,7 +49,7 @@ const Project1: React.FC = () => {
 				<Button variant="contained" endIcon={<KeyboardDoubleArrowRightIcon/>} href="https://satisfactory-calc.netlify.app">
 					Check it out
 				</Button>
-				<StyledBox sx={{height: 500}}/>
+				<StyledBox sx={{height: {xs: 200, sm: 300, lg: 500, xl: 700}}}/>
 			</Stack>
 		</Box>
 	)
