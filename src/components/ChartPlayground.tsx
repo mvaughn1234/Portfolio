@@ -62,7 +62,7 @@ const GraphWrapper: React.FC<GraphWrapperProps> = ({selectedGraph, interactionPr
 	if (selectedGraph === charts[0]) {
 		return (
 			<Stack direction="column" sx={{justifyContent: 'center', width: '100%', pt: 1, alignItems: 'center'}}>
-				<Typography align='center'>Impact of Study and Sleep Habits on Academic Performance</Typography>
+				<Typography align='center' variant="subtitle2">Impact of Study and Sleep Habits on Academic Performance</Typography>
 				<EducationResultsWrapper height={320}
 																 xSwitch={(interactionProps !== null && interactionProps.length > 0 && (interactionProps[0] && interactionProps[0]["xSwitch"] as ("study_hours" | "sleep_hours"))) || "study_hours"}/>
 			</Stack>
@@ -70,7 +70,7 @@ const GraphWrapper: React.FC<GraphWrapperProps> = ({selectedGraph, interactionPr
 	} else if (selectedGraph === charts[1]) {
 		return (
 			<Stack direction="column" sx={{justifyContent: 'center', width: '100%', pt: 1, alignItems: 'center'}}>
-				<Typography align='center'>Air Quality Analysis</Typography>
+				<Typography align='center' variant="subtitle2">Air Quality Analysis by UHF Neighborhood in New York City</Typography>
 				<AirQualityAnalysisWrapper height={320}
 																	 date={(interactionProps !== null && interactionProps.length > 0 && interactionProps[0] && interactionProps[0]["date"]) ? interactionProps[0]["date"] : "2015"}
 																	 metric={(interactionProps !== null && interactionProps.length > 0 && interactionProps[1] && interactionProps[1]["metric"]) ? interactionProps[1]["metric"] : "Nitrogen"}/>
@@ -176,7 +176,7 @@ const InteractionsWrapper: React.FC<InteractionsWrapperProps> = ({selectedGraph,
 						onChange={handleAQDate}
 						slotProps={{
 							textField: {
-								sx: {minWidth: {xs: 100, lg: 135}}
+								sx: {minWidth: {xs: 110, lg: 140}}
 							}
 						}}
 

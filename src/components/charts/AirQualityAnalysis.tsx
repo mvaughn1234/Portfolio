@@ -1,4 +1,7 @@
+import {Card, CardContent, Divider} from "@mui/material";
 import Box from "@mui/material/Box";
+import {alpha} from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
 import useResizeObserver from "@react-hook/resize-observer";
 import * as d3 from "d3";
 import * as GeoJSON from "geojson";
@@ -183,6 +186,18 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 		data_value: [],
 		message: [],
 	})
+	const [tooltip, setTooltip] = useState<{
+		x: number;
+		y: number;
+		data1: FeatureProperties | null;
+		data2: AirQualityDataProps | null
+	}>({
+		x: 0,
+		y: 0,
+		data1: null,
+		data2: null,
+	});
+
 
 	useEffect(() => {
 		if (!svgRef.current || !data || !dataIndexed || dataIndexed.unique_id.length === 0 || !containerRef
@@ -208,7 +223,7 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 				selectedDataIndex = fineDataIndexed;
 			} else if (metric === "Boiler") {
 				selectedDataIndex = boilerDataIndexed;
-				exponent=0.25
+				exponent = 0.25
 			}
 			// Define a color scale for air quality values
 			const colorScale = d3.scalePow(d3.extent(selectedDataIndex.data_value) as [number, number], ["#23E538", "#E62261"]).exponent(exponent)
@@ -231,33 +246,125 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 			// Bind GeoJSON features to paths
 			svg.selectAll<SVGPathElement, GeoJSON.Feature<GeoJSON.Geometry, FeatureProperties>>("path")
 				.data(geoData.features)
-				.join("path")
-				.attr("d", path)
-				.attr("fill", (d) => {
-					const geoId = Math.trunc(d.properties.UHFCODE || 0); // Adjust to your GeoJSON field
-					const value = metricDateAQMap.find(datum => datum.geo_join_id === geoId)?.data_value
-					return value !== undefined ? colorScale(value) : "#ccc"; // Default for missing data
-				})
-				.attr("stroke", "#000")
-				.attr("stroke-width", .5)
-				.on("mouseover", (_event, d) => {
-					const thisId = d.properties?.["UHFCODE"] || 0;
+				.join(enter => {
+						const e = enter.append("path")
+							.attr("d", path)
+							// .call(enterSel => enterSel.append("title"))
+							.attr("fill", (d) => {
+								const geoId = Math.trunc(d.properties.UHFCODE || 0); // Adjust to your GeoJSON field
+								const value = metricDateAQMap.find(datum => datum.geo_join_id === geoId)?.data_value
+								return value !== undefined ? colorScale(value) : "#ccc"; // Default for missing data
+							})
+							.attr("stroke", "#000")
+							.attr("stroke-width", .5)
+							.on("mouseover", (_event, d) => {
+								const thisId = d.properties?.["UHFCODE"] || 0;
 
-					svg.selectAll<SVGPathElement, GeoJSON.Feature<GeoJSON.Geometry, FeatureProperties>>("path")
-						.attr("filter", (p) => {
-							return p.properties.UHFCODE === thisId
-								? "url(#shadow)"
-								: null
-						})
-						.attr("stroke-width", p => p.properties.UHFCODE === thisId ? 1.5 : 0.5)
 
-				})
+								svg.selectAll<SVGPathElement, GeoJSON.Feature<GeoJSON.Geometry, FeatureProperties>>("path")
+									.attr("filter", (p) => {
+										return p.properties.UHFCODE === thisId
+											? "url(#shadow)"
+											: null
+									})
+									.attr("stroke-width", p => p.properties.UHFCODE === thisId ? 1.5 : 0.5)
+								if (containerRef.current) {
+									const containerBounds = containerRef.current.getBoundingClientRect();
+									// const containerBounds = svgRef.current.getBoundingClientRect();
+									// const [x, y] = d3.pointer(event);
+									const [x, y] = [0, 0];
+									const geoId = Math.trunc(d.properties.UHFCODE || 0); // Adjust to your GeoJSON field
+									const correspondingDatum = metricDateAQMap.find(datum => datum.geo_join_id === geoId)
+									setTooltip({
+										x: x + containerBounds.left,
+										y: y + containerBounds.top + 10,
+										data1: d.properties,
+										data2: correspondingDatum || null
+									});
+								}
 
-				.on("mouseout", () => {
-					d3.selectAll("path")
-						.attr("filter", null)
-						.attr("stroke-width", .5); // Reset stroke width
-				})
+							})
+							.on('mousemove', (_event) => {
+								if (containerRef.current) {
+									const containerBounds = containerRef.current.getBoundingClientRect();
+									// const containerBounds = svgRef.current.getBoundingClientRect();
+									// const [x, y] = d3.pointer(event);
+									const [x, y] = [0, 0];
+									setTooltip(prev => ({...prev, x: x + containerBounds.left, y: y + containerBounds.top + 10}));
+								}
+							})
+							.on("mouseout", () => {
+								d3.selectAll("path")
+									.attr("filter", null)
+									.attr("stroke-width", .5); // Reset stroke width
+								setTooltip({x: 0, y: 0, data1: null, data2: null});
+
+							})
+						// .call(enterSel => enterSel.select("title").text(d => d.properties.UHF_NEIGH))
+						return e;
+					},
+					update => {
+						update
+							.attr("d", path)
+
+							.attr("fill", (d) => {
+								const geoId = Math.trunc(d.properties.UHFCODE || 0); // Adjust to your GeoJSON field
+								const value = metricDateAQMap.find(datum => datum.geo_join_id === geoId)?.data_value
+								return value !== undefined ? colorScale(value) : "#ccc"; // Default for missing data
+							})
+							.attr("stroke", "#000")
+							.attr("stroke-width", .5)
+							.on("mouseover", (_event, d) => {
+								const thisId = d.properties?.["UHFCODE"] || 0;
+
+
+								svg.selectAll<SVGPathElement, GeoJSON.Feature<GeoJSON.Geometry, FeatureProperties>>("path")
+									.attr("filter", (p) => {
+										return p.properties.UHFCODE === thisId
+											? "url(#shadow)"
+											: null
+									})
+									.attr("stroke-width", p => p.properties.UHFCODE === thisId ? 1.5 : 0.5)
+
+								if (containerRef.current) {
+									const containerBounds = containerRef.current.getBoundingClientRect();
+									// const containerBounds = svgRef.current.getBoundingClientRect();
+									// const [x, y] = d3.pointer(event);
+									const [x, y] = [0, 0];
+									const geoId = Math.trunc(d.properties.UHFCODE || 0); // Adjust to your GeoJSON field
+									const correspondingDatum = metricDateAQMap.find(datum => datum.geo_join_id === geoId)
+									setTooltip({
+										x: x + containerBounds.left,
+										y: y + containerBounds.top + 10,
+										data1: d.properties,
+										data2: correspondingDatum || null
+									});
+								}
+
+							})
+							.on('mousemove', (_event) => {
+								if (containerRef.current) {
+									const containerBounds = containerRef.current.getBoundingClientRect();
+									// const containerBounds = svgRef.current.getBoundingClientRect();
+									// const [x, y] = d3.pointer(event);
+									const [x, y] = [0, 0];
+									setTooltip(prev => ({...prev, x: x + containerBounds.left, y: y + containerBounds.top + 10}));
+								}
+							})
+							.on("mouseout", () => {
+								d3.selectAll("path")
+									.attr("filter", null)
+									.attr("stroke-width", .5); // Reset stroke width
+								setTooltip({x: 0, y: 0, data1: null, data2: null});
+							})
+						// .select("title").text(d => d.properties.UHF_NEIGH)
+						return update;
+					}, exit => {
+						exit
+							.remove()
+						return exit;
+					})
+
 		})
 
 	}, [dataIndexed, width, height, data, date, metric])
@@ -415,6 +522,33 @@ const AirQualityAnalysis: React.FC<AirQualityAnalysisProps> = ({height, width, c
 	return (
 		<div ref={containerRef}>
 			<svg ref={svgRef}/>
+			{tooltip.data1 && (
+				<Card
+					sx={(theme) => ({
+						position: 'absolute',
+						pointerEvents: 'none',
+						backgroundColor: alpha(theme.palette.background.paper, 0.5),
+						maxWidth: 250,
+						border: '1px solid',
+						borderColor: theme.palette.grey[300],
+						borderRadius: 1,
+					})}
+					style={{
+						top: tooltip.y,
+						left: tooltip.x,
+					}}
+					elevation={0}
+				>
+					<CardContent sx={{m: 0, p: 1}}>
+						<Typography variant="subtitle1"><b>{tooltip.data1.UHF_NEIGH}</b></Typography>
+						<Divider variant="fullWidth" sx={{my: 0, px: -1, pt: 1, pb: 0}}/>
+						<Typography variant="body2" sx={{pt: 1}}>UHF Code: {tooltip.data1.UHFCODE}</Typography>
+						<Typography variant="body2">Borough: {tooltip.data1.BOROUGH}</Typography>
+						<Typography
+							variant="body2">{tooltip.data2?.name}: <b>{tooltip.data2?.data_value}</b> [{tooltip.data2?.name.startsWith("Boiler") ? tooltip.data2?.measure : tooltip.data2?.measure_info}]</Typography>
+					</CardContent>
+				</Card>
+			)}
 		</div>
 	)
 }
