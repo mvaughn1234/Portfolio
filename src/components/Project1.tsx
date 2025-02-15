@@ -1,5 +1,6 @@
 import {Button, Divider} from "@mui/material";
 import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import {alpha, styled} from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
@@ -30,28 +31,33 @@ const StyledBox = styled('div')(({theme}) => ({
 
 const Project1: React.FC = () => {
 	return (
-		// <Box sx={(theme) => ({p: 10, width: '100%', backgroundColor: theme.palette.background.paper})}>
-		<Box sx={{py: 10, px: {xs: 1, sm: 5, lg: 10, xl: 20}, width: '100%'}}>
-			<Divider />
-			<Stack spacing={4} sx={{
-				alignItems: 'flex-start',
-				justifyContent: 'flex-start',
-				p: {xs: 2, sm: 4}
-			}}>
-				<Stack spacing={1}>
-					<Typography variant="h2" sx={(theme) => ({color: theme.palette.grey[700], ...theme.applyStyles('dark', {
-						color: theme.palette.grey[50]
-						})})}>Satisfactory Calculator</Typography>
-					<Typography sx={{maxWidth: 500}} variant="body1">The app is designed optimize production lines in the game
-						Satisfactory, helping players minimize resource usage, and maximize efficiency.
-					</Typography>
+		<Container maxWidth="xl">
+			<Box sx={{py: 10, px: {xs: 1, sm: 5, lg: 10, xl: 20}, width: '100%'}}>
+				<Divider/>
+				<Stack spacing={4} sx={{
+					alignItems: 'flex-start',
+					justifyContent: 'flex-start',
+					p: {xs: 2, sm: 4}
+				}}>
+					<Stack spacing={1}>
+						<Typography variant="h2" sx={(theme) => ({
+							color: theme.palette.grey[700], ...theme.applyStyles('dark', {
+								color: theme.palette.grey[50]
+							})
+						})}>Satisfactory Calculator</Typography>
+						<Typography sx={{maxWidth: 500}} variant="body1">The app was a fun passion project, designed to optimize
+							production lines in the game Satisfactory, helping players minimize resource usage, and maximize
+							efficiency.
+						</Typography>
+					</Stack>
+					<Button variant="contained" endIcon={<KeyboardDoubleArrowRightIcon/>}
+									href="https://satisfactory-calc.netlify.app">
+						Check it out
+					</Button>
+					<StyledBox sx={{height: {xs: 200, sm: 300, lg: 500, xl: 700}}}/>
 				</Stack>
-				<Button variant="contained" endIcon={<KeyboardDoubleArrowRightIcon/>} href="https://satisfactory-calc.netlify.app">
-					Check it out
-				</Button>
-				<StyledBox sx={{height: {xs: 200, sm: 300, lg: 500, xl: 700}}}/>
-			</Stack>
-		</Box>
+			</Box>
+		</Container>
 	)
 }
 

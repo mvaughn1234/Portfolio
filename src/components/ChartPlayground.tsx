@@ -229,15 +229,15 @@ const ChartPlayground: React.FC = () => {
 						justifyContent: 'center'
 					}}>
 						<Stack sx={{width: '100%', alignItems: 'center'}}>
-							<Typography variant="h4">Pick A Chart...</Typography>
+							<Typography variant="h4">Chart Playground ...</Typography>
 							{graphSelect}
 						</Stack>
 					</Box>
 					:
 					<Fade in={selectedChart !== ''} timeout={500}>
-						<Box sx={{flexGrow: 1, height: '100%'}}>
+						<Box sx={{flexGrow: 1, height: '100%', p: 4}}>
 							<Grid container spacing={2} alignItems="center" sx={{height: '100%'}}>
-								<Grid size={{xs: 12, sm: 8, md: 8}} sx={{height: {sm: '100%'}, px: 2}}>
+								<Grid size={{xs: 12, sm: 8, md: 8}} sx={{height: {sm: '100%'}, px: {xs: 0, md: 2}}}>
 									<GraphWrapper selectedGraph={selectedChart} interactionProps={interactionProps}/>
 								</Grid>
 								<Grid size={{xs: 12, sm: 4, md: 4}}
