@@ -65,7 +65,7 @@ const Hero: React.FC = () => {
 							width: {sm: '100%', md: '80%'},
 						}}
 					>
-						I help clients transform complex data into actionable insights with intuitive, dynamic visualizations and
+						I turn complex data into clear, interactive stories-through smart visualizations and
 						scalable full-stack applications.
 					</Typography>
 				</Stack>
